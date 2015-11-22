@@ -1,25 +1,21 @@
 # -*- coding: utf-8 -*-
-import random
 
 from pattern.Singleton import Singleton
-from screen.Screen import Screen
-from sprite.Triangle import Triangle
-from utils.Color import GREEN
+from entity.Vehicle import Vehicle
 
 
 class GameWorld(Singleton):
     def __init__(self):
-        param = {'color': GREEN,
-                 'pointList': ((50, 50), (100, 50), (57, 75)),
-                 'screen': Screen()}
-        self.triangle = Triangle(param)
-        self.triangle.addToParent(Screen())
+        self.vehicle1 = Vehicle(self)
+        self.vehicle2 = Vehicle(self)
 
     def render(self):
-        pass
+        self.vehicle1.render()
+        self.vehicle2.render()
 
-    def update(self):
-        self.triangle.update()
+    def update(self, time_elapsed):
+        self.vehicle1.update(time_elapsed)
+        self.vehicle2.update(time_elapsed)
 
     @staticmethod
     def getInstance():
