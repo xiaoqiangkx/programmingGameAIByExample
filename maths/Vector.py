@@ -25,8 +25,11 @@ class Vector(object):
         return type(self)(*map(lambda a: a / other, self))
 
     def length(self):
+        return math.sqrt(self.length_seq())
+
+    def length_seq(self):
         total = sum(map(lambda a: math.pow(a, 2), self))
-        return math.sqrt(total)
+        return total
 
     def normalized(self):
         divisor = [self.length()] * len(self)
@@ -35,6 +38,8 @@ class Vector(object):
     def truncate(self, max_value):
         if self.length() > max_value:
             return self.normalized() * max_value
+        else:
+            return self
 
     @classmethod
     def add(cls, a, b):

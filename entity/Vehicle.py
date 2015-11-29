@@ -6,13 +6,14 @@ from sprite.Triangle import Triangle
 from utils.Color import GREEN
 from entity.SteeringBehaviors import SteeringBehaviors
 from logger.LogManager import LogManager
+from screen.Screen import Screen
 
 
 class Vehicle(MovingEntity):
     def __init__(self, game_world):
         MovingEntity.__init__(self)
         self.game_world = game_world
-        self.steer_behavior = SteeringBehaviors(self)
+        self._steer_behavior = SteeringBehaviors(self)
 
         data = self.get_vehicle_data()
         self.sprite = Triangle(data)
@@ -21,6 +22,10 @@ class Vehicle(MovingEntity):
 
     def set_color(self, color):
         self.sprite.color = color
+
+    @property
+    def steer_behavior(self):
+        return self._steer_behavior
 
     def get_vehicle_data(self):
         param = {'color': GREEN,
@@ -34,27 +39,26 @@ class Vehicle(MovingEntity):
     def render(self):
         self.sprite.render()
 
-    def update_position(self, time_elapsed):
-        next_position = self.get_position() + self.get_velocity() * time_elapsed
-        self.set_position(next_position)
-        self.sprite.update_position({"center_point": self.get_position()})
+    def update_position(self):
+        self.sprite.update_position({"center_point": self.position})
 
     def update(self, time_elapsed):
-        steer_force = self.steer_behavior.calculate()
-        # acceleration = steer_force / self.max_force
-        #
-        # self.velocity = acceleration * time_elapsed
-        # self.velocity = self.velocity.truncate()
-        #
-        # self.position += self.velocity * time_elapsed
-        #
-        # if self.velocity.length() > 0.00000001:
-        #     self.heading = self.velocity.normalized()
-        #     self.side = self.heading.perp()
-        #
-        # screen_size = Screen.getInstance().getInstance().getSize()
-        # self.position = WrapAround(self.position, screen_size['width'], screen_size['height'])
-        self.update_position(time_elapsed)
+        steer_force = self._steer_behavior.calculate()
+        acceleration = steer_force / self.mass
+
+        self.velocity = acceleration * time_elapsed
+        self.velocity = self.velocity.truncate(self.max_speed)
+
+        self.position += self.velocity * time_elapsed
+
+        if self.velocity.length() > 0.1:
+            self.head_direction = self.velocity.normalized()
+            self.side_direction = self.head_direction.perp()
+
+        screen_size = Screen().get_size()
+        self.position = WrapAround(self.position, screen_size['width'], screen_size['height'])
+
+        self.update_position()
         self.sprite.update(time_elapsed)
 
 

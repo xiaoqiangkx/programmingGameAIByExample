@@ -17,6 +17,11 @@ class GameWorld(object):
         self.vehicle2.set_color(BLUE)
         self._logger = LogManager.get_logger("GameWorld")
 
+        # self.vehicle1.steer_behavior.set_pursuit_on(self.vehicle2)
+        # self.vehicle2.steer_behavior.set_evade_on(self.vehicle1)
+        self.vehicle1.steer_behavior.set_wander_on()
+        self.vehicle2.steer_behavior.set_wander_on()
+
     def render(self):
         self.vehicle1.render()
         self.vehicle2.render()
@@ -24,6 +29,8 @@ class GameWorld(object):
     def update(self, time_elapsed):
         self.vehicle1.update(time_elapsed)
         self.vehicle2.update(time_elapsed)
+        self._logger.info("speed 1:%s", self.vehicle1.get_speed())
+        self._logger.info("speed 2:%s", self.vehicle2.get_speed())
 
     @staticmethod
     def getInstance():

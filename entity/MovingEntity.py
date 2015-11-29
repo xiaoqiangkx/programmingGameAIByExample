@@ -15,11 +15,14 @@ class MovingEntity(BaseGameEntity):
         self.velocity = Vector2(0, 1)
         self.head_direction = Vector2(0, 1)    # 指向实体的朝向
         self.side_direction = self.head_direction.perp()  # 垂直朝向的向量
-        self.mass = 0                   # 质量
-        self.max_speed = 0              # 最大速度
+        self.mass = 10                  # 质量
+        self.max_speed = 1              # 最大速度
         self.max_force = 0              # 最大力
         self.max_turn_rate = 0          # 弧度每秒
         self.position = Vector2(0, 0)
+
+    def get_speed(self):
+        return self.velocity.length()
 
 
 if __name__ == '__main__':
