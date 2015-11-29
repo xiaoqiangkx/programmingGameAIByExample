@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import sys
+import time
 
 import pygame
 from pygame.locals import QUIT
 
+
 from game.GameWorld import GameWorld
 from screen.Screen import Screen
 
-import time
-
-G_Screen = Screen.getInstance()
-G_GameWorld = GameWorld.getInstance()
+G_Screen = Screen()
+G_GameWorld = GameWorld()
 
 
 def init():
@@ -28,9 +28,10 @@ def main_loop():
                 pygame.quit()
                 sys.exit()
 
+        G_Screen.refill()
         G_GameWorld.update(time_elapsed)
         G_GameWorld.render()
-        pygame.display.update()
+        pygame.display.flip()
         cnt += 1
         pygame.time.delay(30)
 

@@ -3,24 +3,25 @@ import pygame
 
 from pattern.Singleton import Singleton
 from utils.Color import WHITE
+from common.TIDs import TID_GAME_NAME
 
 
-class Screen(Singleton):
+@Singleton
+class Screen(object):
     def __init__(self):
         pygame.init()
         self.size = (500, 400)
-        self.title = ('AI Game')
+        self.title = (TID_GAME_NAME)
         self.screen_surface = pygame.display.set_mode(self.size)
         pygame.display.set_caption(self.title)
         # draw on the surface object
         self.screen_surface.fill(WHITE)
 
-    def getSurface(self):
+    def get_surface(self):
         return self.screen_surface
 
-    def getSize(self):
-        return {'width': self.size[0], 'height': self.size[1]}
+    def refill(self):
+        self.screen_surface.fill(WHITE)
 
-    @staticmethod
-    def getInstance():
-        return Screen()
+    def get_size(self):
+        return {'width': self.size[0], 'height': self.size[1]}

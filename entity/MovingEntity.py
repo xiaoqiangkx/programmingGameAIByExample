@@ -19,7 +19,7 @@ class MovingEntity(BaseGameEntity):
         self.max_speed = 0              # 最大速度
         self.max_force = 0              # 最大力
         self.max_turn_rate = 0          # 弧度每秒
-        self.position = Vector2(100, 100)
+        self.position = Vector2(0, 0)
 
 
 if __name__ == '__main__':

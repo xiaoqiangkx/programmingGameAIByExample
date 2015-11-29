@@ -5,6 +5,7 @@ from common.G_Func import WrapAround
 from sprite.Triangle import Triangle
 from utils.Color import GREEN
 from entity.SteeringBehaviors import SteeringBehaviors
+from logger.LogManager import LogManager
 
 
 class Vehicle(MovingEntity):
@@ -15,6 +16,11 @@ class Vehicle(MovingEntity):
 
         data = self.get_vehicle_data()
         self.sprite = Triangle(data)
+
+        self._logger = LogManager.get_logger("Vehicle")
+
+    def set_color(self, color):
+        self.sprite.color = color
 
     def get_vehicle_data(self):
         param = {'color': GREEN,
@@ -31,8 +37,7 @@ class Vehicle(MovingEntity):
     def update_position(self, time_elapsed):
         next_position = self.get_position() + self.get_velocity() * time_elapsed
         self.set_position(next_position)
-        data = self.get_vehicle_data()
-        self.sprite.update_resource(data)
+        self.sprite.update_position({"center_point": self.get_position()})
 
     def update(self, time_elapsed):
         steer_force = self.steer_behavior.calculate()
