@@ -12,14 +12,21 @@ class SteeringBehaviors(object):
 
     def __init__(self, vehicle):
         self.vehicle = vehicle
+
         self.pursuit_on = False
+        self.pursuer = None
+
         self.evade_on = False
+        self.evader = None
+
         self.wander_on = False
         self.wander_jitter = 1
         self.wander_radius = 1
         self.wander_distance = 1
-        self.evader = None
-        self.pursuer = None
+
+        self.obstacle_avoid_on = False
+        self._obstacles = []
+
         self._logger = LogManager.get_logger("SteeringBehaviors")
 
     def set_pursuit_on(self, evader):
@@ -32,6 +39,10 @@ class SteeringBehaviors(object):
     def set_evade_on(self, pursuer):
         self.evade_on = True
         self.pursuer = pursuer
+
+    def set_obstacle_avoid_on(self, obstacles):
+        self.obstacle_avoid_on = True
+        self._obstacles = obstacles
 
     def seek(self, target_position):
         target_velocity = (target_position - self.vehicle.get_position()).normalized() * self.vehicle.get_max_speed()
@@ -98,6 +109,61 @@ class SteeringBehaviors(object):
 
         return target_world - self.vehicle.get_position()
 
+    def obstacle_avoidance(self, obstacles):
+        import utils.consts as CONST
+        import math
+        # 1. 获取最近的物体
+        box_length = CONST.MIN_DELETE_BOX_LENGTH +\
+            self.vehicle.get_max_speed() / self.vehicle.get_max_speed() * CONST.MIN_DELETE_BOX_LENGTH
+
+        self.vehicle.game_world.tag_obstacles_with_view_range(self.vehicle, box_length)
+
+        local_position_of_closest_obstacle = None
+        dist_to_closest_ip = float("inf")
+        closest_obstacle = None
+
+        for obstacle in obstacles:
+            if obstacle.tag is False:
+                continue
+
+            from maths.Matrix import PointToLocalPosition
+            local_position = PointToLocalPosition(obstacle.position,
+                                                  self.vehicle.get_head_direction(),
+                                                  self.vehicle.get_side_direction(),
+                                                  self.vehicle.get_position())
+
+            if local_position.x >= 0:
+                expand_radius = obstacle.bounding_radius + self.vehicle.bounding_radius / 2
+
+                if abs(local_position.y) < expand_radius:   # 表示相交
+                    cx = local_position.x
+                    cy = local_position.y
+
+                    square_part = math.sqrt(expand_radius * expand_radius - cy * cy)
+
+                    ip = cx - square_part
+                    if ip <= 0:
+                        ip = cx + square_part
+
+                    if ip < dist_to_closest_ip:
+                        dist_to_closest_ip = ip
+                        closest_obstacle = obstacle
+                        local_position_of_closest_obstacle = local_position
+
+        # 2. 计算侧向力和制动力
+        steering_force = Vector2(0, 0)
+        if local_position_of_closest_obstacle:
+            # 侧向力反比于x的距离，方向由bounding_radius和local_obstacle.y控制，这个比较精巧
+            multiplier = 1.0 + (box_length - local_position_of_closest_obstacle.x) / box_length
+            steering_force_y = (closest_obstacle.bounding_radius - local_position_of_closest_obstacle.y) * multiplier
+
+            # 正向力由距离控制, x越大，力越大;
+            steering_force_x = 0.2 * (closest_obstacle.bounding_radius - local_position_of_closest_obstacle.x)
+            steering_force = Vector2(steering_force_x, steering_force_y)
+
+        from maths.Matrix import VectorToWorldSpace
+        return VectorToWorldSpace(steering_force, self.vehicle.get_head_direction(), self.vehicle.get_side_direction())
+
     def calculate(self):
         result = Vector2(0, 0)
         if self.pursuit_on and self.evader:
@@ -108,6 +174,9 @@ class SteeringBehaviors(object):
 
         if self.wander_on:
             result += self.wander()
+
+        if self.obstacle_avoid_on:
+            result += self.obstacle_avoidance(self._obstacles)
 
         return result
 

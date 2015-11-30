@@ -10,7 +10,7 @@ from common.TIDs import TID_GAME_NAME
 class Screen(object):
     def __init__(self):
         pygame.init()
-        self.size = (500, 400)
+        self.size = (800, 600)
         self.title = (TID_GAME_NAME)
         self.screen_surface = pygame.display.set_mode(self.size)
         pygame.display.set_caption(self.title)

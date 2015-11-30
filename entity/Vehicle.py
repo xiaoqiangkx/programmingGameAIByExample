@@ -10,11 +10,11 @@ from screen.Screen import Screen
 
 
 class Vehicle(MovingEntity):
-    def __init__(self, game_world):
-        MovingEntity.__init__(self)
-        self.game_world = game_world
+    def __init__(self, game_world, position, radius):
+        MovingEntity.__init__(self, position, radius)
         self._steer_behavior = SteeringBehaviors(self)
 
+        self._game_world = game_world
         data = self.get_vehicle_data()
         self.sprite = Triangle(data)
 
@@ -24,6 +24,10 @@ class Vehicle(MovingEntity):
         self.sprite.color = color
 
     @property
+    def game_world(self):
+        return self._game_world
+
+    @property
     def steer_behavior(self):
         return self._steer_behavior
 
@@ -31,7 +35,7 @@ class Vehicle(MovingEntity):
         param = {'color': GREEN,
                  'center_point': self.get_position(),
                  'head_direction': self.get_head_direction(),
-                 'side': 20,
+                 'side': self.bounding_radius * 3 / 1.732,
                  'width': 1
         }
         return param
@@ -49,14 +53,14 @@ class Vehicle(MovingEntity):
         self.velocity = acceleration * time_elapsed
         self.velocity = self.velocity.truncate(self.max_speed)
 
-        self.position += self.velocity * time_elapsed
+        self._position += self.velocity * time_elapsed
 
         if self.velocity.length() > 0.1:
             self.head_direction = self.velocity.normalized()
             self.side_direction = self.head_direction.perp()
 
         screen_size = Screen().get_size()
-        self.position = WrapAround(self.position, screen_size['width'], screen_size['height'])
+        self._position = WrapAround(self.position, screen_size['width'], screen_size['height'])
 
         self.update_position()
         self.sprite.update(time_elapsed)

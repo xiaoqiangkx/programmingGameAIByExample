@@ -2,6 +2,32 @@
 from maths.Vector import Vector2
 
 
+def VectorToWorldSpace(local_vector, heading, side):
+    trans_vec = local_vector
+
+    trans_matrix = C2DMatrix()
+    trans_matrix.rotate(heading, side)
+
+    trans_vec = trans_matrix.transform_vector_2d(trans_vec)
+    return trans_vec
+
+def PointToLocalPosition(target_world, heading, side, local_position):
+    trans_point = target_world
+
+    trans_matrix = C2DMatrix()
+    tx = -Vector2.dot(local_position, heading)
+    ty = -Vector2.dot(local_position, side)
+
+    trans_matrix.matrix = [
+        [heading.x, side.x, 0],
+        [heading.y, side.y, 0],
+        [tx, ty, 1]
+    ]
+
+    trans_point = trans_matrix.transform_vector_2d(trans_point)
+    return trans_point
+
+
 def PointToWorldSpace(target_local, heading, side, local_position):
     trans_point = target_local
 
