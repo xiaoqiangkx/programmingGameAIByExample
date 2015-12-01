@@ -43,8 +43,11 @@ class Vehicle(MovingEntity):
     def render(self):
         self.sprite.render()
 
-    def update_position(self):
-        self.sprite.update_position({"center_point": self.position})
+    def update_place(self):
+        self.sprite.update_place({
+            "center_point": self._position,
+            "head_direction": self.head_direction,
+             })
 
     def update(self, time_elapsed):
         steer_force = self._steer_behavior.calculate()
@@ -55,14 +58,14 @@ class Vehicle(MovingEntity):
 
         self._position += self.velocity * time_elapsed
 
-        if self.velocity.length() > 0.1:
+        if self.velocity.length() > 0.0001:
             self.head_direction = self.velocity.normalized()
             self.side_direction = self.head_direction.perp()
 
         screen_size = Screen().get_size()
         self._position = WrapAround(self.position, screen_size['width'], screen_size['height'])
 
-        self.update_position()
+        self.update_place()
         self.sprite.update(time_elapsed)
 
 

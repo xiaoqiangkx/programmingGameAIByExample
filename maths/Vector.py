@@ -87,10 +87,16 @@ class Vector2(Vector, xy):
     Supports all base iterable functions (slicing, for loops, any(), etc)
     """
     def perp(self):
+        return Vector2(-self.y, self.x)
+
+    def reverse_perp(self):
         return Vector2(self.y, -self.x)
 
     def to_tuple(self):
         return (self.x, self.y)
+
+    def __str__(self):
+        return ",".join([str(self.x), str(self.y)])
 
 
 class Vector3(Vector, xyz):

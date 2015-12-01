@@ -16,8 +16,9 @@ class Triangle(object):
         self._side = params['side']
         self._head_direction = params['head_direction']
 
-    def update_position(self, params):
+    def update_place(self, params):
         self._center_point = params.get('center_point', self._center_point)
+        self._head_direction = params.get('head_direction', self._head_direction)
 
     def update_point_list(self):
         point1 = self._head_direction * self._side * 1.732 / 3 + self._center_point

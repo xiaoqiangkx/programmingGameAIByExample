@@ -27,6 +27,9 @@ class SteeringBehaviors(object):
         self.obstacle_avoid_on = False
         self._obstacles = []
 
+        self.wall_avoid_on = False
+        self._walls = []
+
         self._logger = LogManager.get_logger("SteeringBehaviors")
 
     def set_pursuit_on(self, evader):
@@ -43,6 +46,10 @@ class SteeringBehaviors(object):
     def set_obstacle_avoid_on(self, obstacles):
         self.obstacle_avoid_on = True
         self._obstacles = obstacles
+
+    def set_wall_avoid_on(self, walls):
+        self.wall_avoid_on = True
+        self._walls = walls
 
     def seek(self, target_position):
         target_velocity = (target_position - self.vehicle.get_position()).normalized() * self.vehicle.get_max_speed()
@@ -164,6 +171,46 @@ class SteeringBehaviors(object):
         from maths.Matrix import VectorToWorldSpace
         return VectorToWorldSpace(steering_force, self.vehicle.get_head_direction(), self.vehicle.get_side_direction())
 
+    def create_feelers(self):
+        feelers = []
+        feelers.append(self.vehicle.position + self.vehicle.get_head_direction() * self.vehicle.bounding_radius * 1)
+        feelers.append(self.vehicle.position + self.vehicle.get_side_direction() * self.vehicle.bounding_radius * 1)
+        feelers.append(self.vehicle.position + self.vehicle.get_head_direction().reverse_perp() * self.vehicle.bounding_radius * 1)
+        return feelers
+
+    def wall_avoidance(self, walls):
+        feelers = self.create_feelers()    # 胡须只是几个点而已
+
+        closest_point = None
+        closest_dist = float("inf")
+        intersect_feeler = None
+        closest_wall = None
+
+        from maths.Line import LineIntersection2D
+        for feeler in feelers:
+            for wall in walls:
+                intersect_point = LineIntersection2D(self.vehicle.position,
+                                                     feeler,
+                                                     wall.start_position,
+                                                     wall.end_position)
+
+                if intersect_point is not None:
+                    distance = (intersect_point - self.vehicle.position).length()
+                    if distance < closest_dist:
+                        closest_dist = distance
+                        intersect_feeler = feeler
+                        closest_point = intersect_point
+                        closest_wall = wall
+
+        steering_force = Vector2(0, 0)
+        if closest_point is not None:
+            force_value = (closest_point - intersect_feeler).length()
+
+            steering_force = closest_wall.side_direction * force_value
+
+        self._logger.info("force value:%s", steering_force)
+        return steering_force
+
     def calculate(self):
         result = Vector2(0, 0)
         if self.pursuit_on and self.evader:
@@ -177,6 +224,9 @@ class SteeringBehaviors(object):
 
         if self.obstacle_avoid_on:
             result += self.obstacle_avoidance(self._obstacles)
+
+        if self.wall_avoid_on:
+            result += self.wall_avoidance(self._walls)
 
         return result
 
